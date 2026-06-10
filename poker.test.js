@@ -1,5 +1,5 @@
 const assert = require("assert");
-const { bestHand, compareScore, createRoom, scoreFive } = require("../server");
+const { bestHand, compareScore, createRoom, scoreFive } = require("./server");
 
 function c(text) {
   const rankText = text.slice(0, -1);

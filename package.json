@@ -4,6 +4,6 @@
   "private": true,
   "scripts": {
     "start": "node server.js",
-    "test": "node tests/poker.test.js"
+    "test": "node poker.test.js"
   }
 }
