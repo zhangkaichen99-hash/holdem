@@ -5,6 +5,7 @@ const crypto = require("crypto");
 
 const PORT = Number(process.env.PORT || 4173);
 const PUBLIC_DIR = path.join(__dirname, "public");
+const ROOT_DIR = __dirname;
 const rooms = new Map();
 
 const SUITS = ["s", "h", "d", "c"];
@@ -620,22 +621,49 @@ function requireHost(room, playerId) {
 
 function serveStatic(req, res, url) {
   const safePath = url.pathname === "/" ? "/index.html" : decodeURIComponent(url.pathname);
-  const filePath = path.normalize(path.join(PUBLIC_DIR, safePath));
-  if (!filePath.startsWith(PUBLIC_DIR)) {
+  const publicPath = path.normalize(path.join(PUBLIC_DIR, safePath));
+  const rootPath = path.normalize(path.join(ROOT_DIR, safePath));
+  const candidates = [];
+  if (publicPath.startsWith(PUBLIC_DIR)) candidates.push(publicPath);
+  if (rootPath.startsWith(ROOT_DIR)) candidates.push(rootPath);
+
+  if (candidates.length === 0) {
     res.writeHead(403);
     res.end("Forbidden");
     return;
   }
-  fs.readFile(filePath, (error, data) => {
-    if (error) {
+
+  readFirstFile(candidates, (error, filePath, data) => {
+    if (error || !filePath) {
       res.writeHead(404);
       res.end("Not found");
       return;
     }
     const ext = path.extname(filePath);
-    const types = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript" };
+    const types = {
+      ".html": "text/html",
+      ".css": "text/css",
+      ".js": "text/javascript",
+      ".json": "application/json"
+    };
     res.writeHead(200, { "content-type": types[ext] || "application/octet-stream" });
     res.end(data);
+  });
+}
+
+function readFirstFile(candidates, callback) {
+  const [filePath, ...rest] = candidates;
+  if (!filePath) {
+    callback(new Error("Not found"));
+    return;
+  }
+
+  fs.readFile(filePath, (error, data) => {
+    if (error) {
+      readFirstFile(rest, callback);
+      return;
+    }
+    callback(null, filePath, data);
   });
 }
 
