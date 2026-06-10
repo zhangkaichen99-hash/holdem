@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Loop Hold'em</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app">
+      <section id="landing" class="panel">
+        <div>
+          <p class="eyebrow">Loop Hold'em</p>
+          <h1>Texas Hold'em</h1>
+        </div>
+        <label>
+          Name
+          <input id="nameInput" maxlength="18" autocomplete="name" placeholder="Player">
+        </label>
+        <label>
+          Rounds
+          <select id="roundSelect">
+            <option value="5">5 rounds</option>
+            <option value="10" selected>10 rounds</option>
+            <option value="15">15 rounds</option>
+            <option value="20">20 rounds</option>
+          </select>
+        </label>
+        <label>
+          Bots
+          <select id="botSelect">
+            <option value="0">0 bots</option>
+            <option value="2" selected>2 bots</option>
+            <option value="3">3 bots</option>
+            <option value="4">4 bots</option>
+            <option value="5">5 bots</option>
+            <option value="6">6 bots</option>
+          </select>
+        </label>
+        <div class="row">
+          <button id="createBtn">Create Room</button>
+          <button id="joinBtn" class="ghost">Join Invite</button>
+        </div>
+        <p id="landingError" class="error"></p>
+      </section>
+
+      <section id="game" class="game hidden">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Room <span id="roomId">------</span></p>
+            <h2 id="statusText">Waiting</h2>
+          </div>
+          <div class="top-actions">
+            <select id="addBotSelect" class="compact-select">
+              <option value="1">+1 bot</option>
+              <option value="2" selected>+2 bots</option>
+              <option value="3">+3 bots</option>
+              <option value="4">+4 bots</option>
+              <option value="5">+5 bots</option>
+              <option value="6">+6 bots</option>
+            </select>
+            <button id="addBotsBtn" class="ghost">Add Bots</button>
+            <button id="copyInviteBtn" class="ghost">Copy Invite</button>
+            <button id="startBtn">Start</button>
+            <button id="nextRoundBtn" class="hidden">Next Round</button>
+          </div>
+        </header>
+
+        <section class="table" aria-label="Poker table">
+          <div class="board-wrap">
+            <p class="meta" id="roundText">Round 0 / 10</p>
+            <div id="board" class="cards board"></div>
+            <div class="pot-rail">
+              <span class="chip chip-red"></span>
+              <span class="chip chip-gold"></span>
+              <span class="chip chip-cream"></span>
+              <p class="pot" id="potText">Pot 0</p>
+            </div>
+          </div>
+          <div id="players" class="players"></div>
+        </section>
+
+        <section class="controls">
+          <div>
+            <p class="meta">Your hand</p>
+            <div id="myCards" class="cards"></div>
+          </div>
+          <div id="actionButtons" class="row">
+            <button data-move="fold" class="ghost">Fold</button>
+            <button data-move="check" class="ghost">Check</button>
+            <button data-move="call">Call</button>
+            <button data-move="raise">Raise +5</button>
+            <button data-move="allin">All In</button>
+          </div>
+        </section>
+
+        <aside class="side">
+          <p id="inviteText" class="invite"></p>
+          <div id="log" class="log"></div>
+          <p id="gameError" class="error"></p>
+        </aside>
+      </section>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
