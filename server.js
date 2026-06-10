@@ -221,6 +221,18 @@ function nextActiveIndex(room, fromIndex) {
   return 0;
 }
 
+function canTakeTurn(player) {
+  return !player.out && !player.folded && !player.allIn && player.points > 0;
+}
+
+function nextActionIndex(room, fromIndex) {
+  for (let step = 1; step <= room.players.length; step += 1) {
+    const index = (fromIndex + step) % room.players.length;
+    if (canTakeTurn(room.players[index])) return index;
+  }
+  return -1;
+}
+
 function act(room, playerId, move) {
   if (!["preflop", "flop", "turn", "river"].includes(room.phase)) throw new Error("No action is needed right now.");
   if (room.turnPlayerId !== playerId) throw new Error("It is not your turn.");
@@ -355,11 +367,11 @@ function nextTurnId(room) {
   const start = room.players.findIndex(player => player.id === room.turnPlayerId);
   for (let step = 1; step <= room.players.length; step += 1) {
     const player = playerByIndex(room, start + step);
-    if (!player.out && !player.folded && !player.allIn && player.bet < room.currentBet) return player.id;
+    if (canTakeTurn(player) && player.bet < room.currentBet) return player.id;
   }
   for (let step = 1; step <= room.players.length; step += 1) {
     const player = playerByIndex(room, start + step);
-    if (!player.out && !player.folded && !player.allIn && !player.acted) return player.id;
+    if (canTakeTurn(player) && !player.acted) return player.id;
   }
   return null;
 }
@@ -380,8 +392,8 @@ function nextStreet(room) {
     room.board.push(room.deck.pop());
     room.phase = "river";
   }
-  const first = playerByIndex(room, nextActiveIndex(room, room.dealerIndex));
-  room.turnPlayerId = first.id;
+  const firstIndex = nextActionIndex(room, room.dealerIndex);
+  room.turnPlayerId = firstIndex === -1 ? null : playerByIndex(room, firstIndex).id;
   room.message = `${room.phase.toUpperCase()} betting.`;
   log(room, `${room.phase.toUpperCase()} dealt.`);
 }
@@ -658,4 +670,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { bestHand, compareScore, scoreFive, cardText, createRoom, server };
+module.exports = { bestHand, compareScore, scoreFive, cardText, createRoom, nextStreet, server, startGame };

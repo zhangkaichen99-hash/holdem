@@ -1,5 +1,5 @@
 const assert = require("assert");
-const { bestHand, compareScore, createRoom, scoreFive } = require("./server");
+const { bestHand, compareScore, createRoom, nextStreet, scoreFive, startGame } = require("./server");
 
 function c(text) {
   const rankText = text.slice(0, -1);
@@ -33,5 +33,13 @@ assert.equal(room.players.length, 3, "solo room includes two bots");
 assert.equal(room.players.filter(player => player.isBot).length, 2, "bot players are marked");
 assert.equal(room.players[0].points, 100, "human starts with 100 points");
 assert(room.players.slice(1).every(player => player.points === 100), "bots start with 100 points");
+
+const { room: turnRoom } = createRoom({ name: "Solo", rounds: 5, botCount: 2 });
+startGame(turnRoom);
+const foldedBot = turnRoom.players[1];
+const nextBot = turnRoom.players[2];
+foldedBot.folded = true;
+nextStreet(turnRoom);
+assert.equal(turnRoom.turnPlayerId, nextBot.id, "new streets skip folded bots");
 
 console.log("Poker tests passed.");
