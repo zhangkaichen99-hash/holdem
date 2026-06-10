@@ -1,9 +1,10 @@
 const $ = selector => document.querySelector(selector);
 const state = {
   roomId: new URLSearchParams(location.search).get("room"),
-  playerId: localStorage.getItem("loopHoldemPlayerId") || "",
+  playerId: "",
   room: null,
-  events: null
+  events: null,
+  promptedJoin: false
 };
 
 const landing = $("#landing");
@@ -27,6 +28,7 @@ $("#actionButtons").addEventListener("click", event => {
 });
 
 if (state.roomId) {
+  state.playerId = getStoredPlayerId(state.roomId);
   showGame();
   if (state.playerId) connect();
   else joinInvite();
@@ -65,7 +67,8 @@ async function joinInvite() {
 function enterRoom(roomId, playerId) {
   state.roomId = roomId;
   state.playerId = playerId;
-  localStorage.setItem("loopHoldemPlayerId", playerId);
+  localStorage.setItem(playerStorageKey(roomId), playerId);
+  localStorage.removeItem("loopHoldemPlayerId");
   history.replaceState(null, "", `/?room=${roomId}`);
   showGame();
   connect();
@@ -81,11 +84,30 @@ function connect() {
   state.events = new EventSource(`/api/rooms/${state.roomId}/events?playerId=${encodeURIComponent(state.playerId)}`);
   state.events.addEventListener("state", event => {
     state.room = JSON.parse(event.data);
+    promptToJoinIfNeeded();
     render();
   });
   state.events.onerror = () => {
     gameError.textContent = "Connection paused. Reconnecting...";
   };
+}
+
+function promptToJoinIfNeeded() {
+  const me = state.room.players.find(player => player.id === state.playerId);
+  if (me || state.promptedJoin || state.room.phase !== "waiting") return;
+  state.promptedJoin = true;
+  localStorage.removeItem(playerStorageKey(state.roomId));
+  state.playerId = "";
+  gameError.textContent = "You are watching. Enter a name to sit before the game starts.";
+  setTimeout(joinInvite, 50);
+}
+
+function getStoredPlayerId(roomId) {
+  return localStorage.getItem(playerStorageKey(roomId)) || "";
+}
+
+function playerStorageKey(roomId) {
+  return `loopHoldemPlayerId:${roomId}`;
 }
 
 async function startGame() {
