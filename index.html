@@ -16,13 +16,14 @@
       <section id="landing" class="panel">
         <div>
           <p class="eyebrow">Loop Hold'em</p>
-          <h1>Texas Hold'em</h1>
+          <h1 id="landingTitle">Texas Hold'em</h1>
+          <p id="inviteHint" class="invite hidden"></p>
         </div>
-        <label>
+        <label id="nameField">
           Name
           <input id="nameInput" maxlength="18" autocomplete="name" placeholder="Player">
         </label>
-        <label>
+        <label id="roundField">
           Rounds
           <select id="roundSelect">
             <option value="5">5 rounds</option>
@@ -31,7 +32,7 @@
             <option value="20">20 rounds</option>
           </select>
         </label>
-        <label>
+        <label id="botField">
           Bots
           <select id="botSelect">
             <option value="0">0 bots</option>

@@ -9,6 +9,8 @@ const state = {
 
 const landing = $("#landing");
 const game = $("#game");
+const landingTitle = $("#landingTitle");
+const inviteHint = $("#inviteHint");
 const nameInput = $("#nameInput");
 const roundSelect = $("#roundSelect");
 const botSelect = $("#botSelect");
@@ -29,9 +31,12 @@ $("#actionButtons").addEventListener("click", event => {
 
 if (state.roomId) {
   state.playerId = getStoredPlayerId(state.roomId);
-  showGame();
-  if (state.playerId) connect();
-  else joinInvite();
+  if (state.playerId) {
+    showGame();
+    connect();
+  } else {
+    showJoinScreen(state.roomId);
+  }
 }
 
 async function createRoom() {
@@ -53,8 +58,12 @@ async function joinInvite() {
   const roomId = state.roomId || prompt("Paste room code or invite link:");
   if (!roomId) return;
   const cleanRoom = extractRoomId(roomId);
-  const name = nameInput.value || prompt("Your player name:");
-  if (!name) return;
+  const name = nameInput.value.trim();
+  if (!name) {
+    landingError.textContent = "Enter your name first.";
+    nameInput.focus();
+    return;
+  }
   try {
     const data = await api(`/api/rooms/${cleanRoom}/join`, { name });
     enterRoom(data.roomId, data.playerId);
@@ -79,6 +88,30 @@ function showGame() {
   game.classList.remove("hidden");
 }
 
+function showJoinScreen(roomId, message = "") {
+  state.roomId = roomId;
+  if (state.events) state.events.close();
+  landing.classList.remove("hidden");
+  game.classList.add("hidden");
+  landingTitle.textContent = "Join Room";
+  inviteHint.textContent = `Room ${roomId}`;
+  inviteHint.classList.remove("hidden");
+  $("#roundField").classList.add("hidden");
+  $("#botField").classList.add("hidden");
+  $("#createBtn").classList.add("hidden");
+  $("#joinBtn").textContent = "Join Room";
+  landingError.textContent = message;
+}
+
+function showCreateScreen() {
+  landingTitle.textContent = "Texas Hold'em";
+  inviteHint.classList.add("hidden");
+  $("#roundField").classList.remove("hidden");
+  $("#botField").classList.remove("hidden");
+  $("#createBtn").classList.remove("hidden");
+  $("#joinBtn").textContent = "Join Invite";
+}
+
 function connect() {
   if (state.events) state.events.close();
   state.events = new EventSource(`/api/rooms/${state.roomId}/events?playerId=${encodeURIComponent(state.playerId)}`);
@@ -98,8 +131,7 @@ function promptToJoinIfNeeded() {
   state.promptedJoin = true;
   localStorage.removeItem(playerStorageKey(state.roomId));
   state.playerId = "";
-  gameError.textContent = "You are watching. Enter a name to sit before the game starts.";
-  setTimeout(joinInvite, 50);
+  showJoinScreen(state.roomId, "Enter your name to sit before the game starts.");
 }
 
 function getStoredPlayerId(roomId) {
